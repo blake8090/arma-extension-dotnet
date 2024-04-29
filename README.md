@@ -13,7 +13,7 @@ Unlike previous versions which required dependencies such as DllExport, this pro
 
 2. From the project directory, navigate to the output directory:
     ```
-    bin\Release\net8.0\win-x64\publish
+    .\bin\Release\net8.0\win-x64\publish
     ```
 
 3. Copy `ArmaExtensionDotNet_x64.dll` into your base Arma 3 directory.
