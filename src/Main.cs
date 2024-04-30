@@ -43,10 +43,24 @@ namespace ArmaExtensionDotNet
         {
             numCalls++;
 
-            string result = String.Format("Function: {0} - Total calls to extension: {1}", GetString(function), numCalls);
-            WriteOutput(output, result);
+            if (GetString(function) == "runSqfTest")
+            {
+                Task.Run(() =>
+                {
+                    callback?.Invoke("ArmaExtensionDotNet", "writeLog", "runSqfTest - begin");
 
-            callback?.Invoke("ArmaExtensionDotNet", "myFunction", "example data");
+                    callback?.Invoke("ArmaExtensionDotNet", "writeLog", "runSqfTest - sleeping for 2 seconds");
+                    Thread.Sleep(2000);
+                    callback?.Invoke("ArmaExtensionDotNet", "execSqf", "systemChat \"Message 1!\"");
+
+                    callback?.Invoke("ArmaExtensionDotNet", "writeLog", "runSqfTest - sleeping for 3 seconds");
+                    Thread.Sleep(3000);
+                    callback?.Invoke("ArmaExtensionDotNet", "execSqf", "systemChat \"Message 2!\"");
+
+                    callback?.Invoke("ArmaExtensionDotNet", "writeLog", "runSqfTest - end");
+                });
+                WriteOutput(output, "started async task");
+            }
         }
 
         /// <summary>
