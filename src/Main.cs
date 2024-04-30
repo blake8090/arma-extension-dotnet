@@ -58,6 +58,7 @@ namespace ArmaExtensionDotNet
         /// <param name="argv">The args passed to "callExtension" as a string array</param>
         /// <param name="argc">Number of elements in "argv"</param>
         /// <returns>The return code</returns>
+        [UnmanagedCallersOnly(EntryPoint = "RVExtensionArgs")]
         public unsafe static int RVExtensionArgs(char* output, int outputSize, char* function, char** argv, int argc)
         {
             numCalls++;
