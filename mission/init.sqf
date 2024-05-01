@@ -18,7 +18,7 @@ addMissionEventHandler [
     {
         params ["_name", "_function", "_data"];
 
-        diag_log format["ExtensionCallback - name: '%1', function: '%2', data: '%3'", _name, _function, _data];
+        //diag_log format["ExtensionCallback - name: '%1', function: '%2', data: '%3'", _name, _function, _data];
 
         if (_name isEqualTo "ArmaExtensionDotNet" && _function isEqualTo "writeLog") exitWith {
             _data call writeLog;

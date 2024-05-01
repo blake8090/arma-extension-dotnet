@@ -15,16 +15,18 @@ namespace ArmaExtensionDotNet
 
             client.Log($"Waiting for a response to id {id}");
             Stopwatch stopwatch = Stopwatch.StartNew();
-            while(stopwatch.Elapsed.TotalSeconds < 3)
+            while(stopwatch.Elapsed.TotalSeconds < 2)
             {
                 if (responseCache.ContainsResponse(id))
                 {
                     var response = responseCache.ConsumeResponse(id);
-                    client.Log($"GOT A RESPONSE! {response}");
+                    stopwatch.Stop();
+                    var elapsedMs = stopwatch.ElapsedMilliseconds;
+                    client.Log($"Received a response {response} in {elapsedMs} ms");
                 }
             }
             stopwatch.Stop();
-            client.Log("GetPlayerPos - timed out!");
+            throw new InvalidOperationException($"GetPlayerPos - timed out for request {id}");
         }
     }
 }
