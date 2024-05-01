@@ -3,8 +3,9 @@ writeLog = {
 };
 
 execSqf = {
-    _code = compile _this;
-    [] spawn _code;
+    _this spawn {
+        "ArmaExtensionDotNet" callExtension ["sendResponse", [call compile _this]];
+    };
 };
 
 addMissionEventHandler [

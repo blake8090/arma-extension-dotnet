@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
+using static ArmaExtensionDotNet.Callback;
 
 namespace ArmaExtensionDotNet
 {
@@ -7,8 +8,7 @@ namespace ArmaExtensionDotNet
     {
         private static int numCalls = 0;
 
-        public delegate int ExtensionCallback([MarshalAs(UnmanagedType.LPStr)] string name, [MarshalAs(UnmanagedType.LPStr)] string function, [MarshalAs(UnmanagedType.LPStr)] string data);
-        private static ExtensionCallback? callback;
+        private static readonly Callback callback = new();
 
         /// <summary>
         /// Called only once when Arma 3 loads the extension.
@@ -17,7 +17,7 @@ namespace ArmaExtensionDotNet
         [UnmanagedCallersOnly(EntryPoint = "RVExtensionRegisterCallback")]
         public unsafe static void RVExtensionRegisterCallback(IntPtr func)
         {
-            callback = Marshal.GetDelegateForFunctionPointer<ExtensionCallback>(func);
+            callback.Register(Marshal.GetDelegateForFunctionPointer<ExtensionCallback>(func));
         }
 
         /// <summary>
@@ -43,21 +43,19 @@ namespace ArmaExtensionDotNet
         {
             numCalls++;
 
-            if (GetString(function) == "runSqfTest")
+            var func = GetString(function);
+            if (func == "runSqfTest")
             {
                 Task.Run(() =>
                 {
-                    callback?.Invoke("ArmaExtensionDotNet", "writeLog", "runSqfTest - begin");
+                    callback.Log("runSqfTest - begin");
 
-                    callback?.Invoke("ArmaExtensionDotNet", "writeLog", "runSqfTest - sleeping for 2 seconds");
+                    callback.ExecSqf("systemChat \"runSqfTest - Sleeping for 2 seconds\"");
                     Thread.Sleep(2000);
-                    callback?.Invoke("ArmaExtensionDotNet", "execSqf", "systemChat \"Message 1!\"");
 
-                    callback?.Invoke("ArmaExtensionDotNet", "writeLog", "runSqfTest - sleeping for 3 seconds");
-                    Thread.Sleep(3000);
-                    callback?.Invoke("ArmaExtensionDotNet", "execSqf", "systemChat \"Message 2!\"");
+                    callback.ExecSqf("getPos player");
 
-                    callback?.Invoke("ArmaExtensionDotNet", "writeLog", "runSqfTest - end");
+                    callback.Log("runSqfTest - end");
                 });
                 WriteOutput(output, "started async task");
             }
@@ -77,14 +75,33 @@ namespace ArmaExtensionDotNet
         {
             numCalls++;
 
+            var func = GetString(function);
+
             List<String> parameters = [];
             for (int i = 0; i < argc; i++)
             {
                 parameters.Add(GetString(argv[i]));
             }
 
-            string result = String.Format("Function: {0} - Params: {1} - Total extension calls: {2}", GetString(function), SerializeList(parameters), numCalls);
-            WriteOutput(output, result);
+            if (func == "sendResponse")
+            {
+                if (parameters.Count != 1)
+                {
+                    callback.Log("sendResponse - 1 parameter required");
+                    return -1;
+                }
+
+                Task.Run(() =>
+                {
+                    callback.Log("sendResponse - received response " + parameters[0]);
+                });
+                WriteOutput(output, "received response");
+            }
+            else
+            {
+                string result = String.Format("Function: {0} - Params: {1} - Total extension calls: {2}", func, SerializeList(parameters), numCalls);
+                WriteOutput(output, result);
+            };
 
             return 0;
         }
