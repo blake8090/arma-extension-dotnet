@@ -2,16 +2,16 @@
 
 namespace ArmaExtensionDotNet
 {
-    internal class Callback
+    internal class Client
     {
         private const string ExtensionName = "ArmaExtensionDotNet";
 
         public delegate int ExtensionCallback([MarshalAs(UnmanagedType.LPStr)] string name, [MarshalAs(UnmanagedType.LPStr)] string function, [MarshalAs(UnmanagedType.LPStr)] string data);
         private ExtensionCallback? callback;
 
-        public void Register(ExtensionCallback newCallback)
+        public void Register(IntPtr functionPointer)
         {
-            callback = newCallback;
+            callback = Marshal.GetDelegateForFunctionPointer<ExtensionCallback>(functionPointer);
         }
 
         public void Log(string log)
@@ -19,9 +19,10 @@ namespace ArmaExtensionDotNet
             callback?.Invoke(ExtensionName, "writeLog", log);
         }
 
-        public void ExecSqf(string code)
+        public void ExecSqf(string requestId, string code)
         {
-            callback?.Invoke(ExtensionName, "execSqf", code);
+            var payload = String.Format("[\"{0}\",\"{1}\"]", requestId, code);
+            callback?.Invoke(ExtensionName, "execSqf", payload);
         }
     }
 }

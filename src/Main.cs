@@ -1,14 +1,15 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
-using static ArmaExtensionDotNet.Callback;
+using static ArmaExtensionDotNet.Client;
 
 namespace ArmaExtensionDotNet
 {
     public class Main
     {
-        private static int numCalls = 0;
-
-        private static readonly Callback callback = new();
+        private static readonly Client client = new();
+        private static readonly ResponseCache responseCache = new();
+        private static readonly Invoker invoker = new(client, responseCache);
+        private static readonly Controller controller = new(client, invoker, responseCache);
 
         /// <summary>
         /// Called only once when Arma 3 loads the extension.
@@ -17,7 +18,7 @@ namespace ArmaExtensionDotNet
         [UnmanagedCallersOnly(EntryPoint = "RVExtensionRegisterCallback")]
         public unsafe static void RVExtensionRegisterCallback(IntPtr func)
         {
-            callback.Register(Marshal.GetDelegateForFunctionPointer<ExtensionCallback>(func));
+            client.Register(func);
         }
 
         /// <summary>
@@ -41,24 +42,8 @@ namespace ArmaExtensionDotNet
         [UnmanagedCallersOnly(EntryPoint = "RVExtension")]
         public unsafe static void RVExtension(char* output, int outputSize, char* function)
         {
-            numCalls++;
-
-            var func = GetString(function);
-            if (func == "runSqfTest")
-            {
-                Task.Run(() =>
-                {
-                    callback.Log("runSqfTest - begin");
-
-                    callback.ExecSqf("systemChat \"runSqfTest - Sleeping for 2 seconds\"");
-                    Thread.Sleep(2000);
-
-                    callback.ExecSqf("getPos player");
-
-                    callback.Log("runSqfTest - end");
-                });
-                WriteOutput(output, "started async task");
-            }
+            var result = controller.Call(GetString(function), []);
+            WriteOutput(output, result);
         }
 
         /// <summary>
@@ -73,35 +58,14 @@ namespace ArmaExtensionDotNet
         [UnmanagedCallersOnly(EntryPoint = "RVExtensionArgs")]
         public unsafe static int RVExtensionArgs(char* output, int outputSize, char* function, char** argv, int argc)
         {
-            numCalls++;
-
-            var func = GetString(function);
-
             List<String> parameters = [];
             for (int i = 0; i < argc; i++)
             {
                 parameters.Add(GetString(argv[i]));
             }
 
-            if (func == "sendResponse")
-            {
-                if (parameters.Count != 1)
-                {
-                    callback.Log("sendResponse - 1 parameter required");
-                    return -1;
-                }
-
-                Task.Run(() =>
-                {
-                    callback.Log("sendResponse - received response " + parameters[0]);
-                });
-                WriteOutput(output, "received response");
-            }
-            else
-            {
-                string result = String.Format("Function: {0} - Params: {1} - Total extension calls: {2}", func, SerializeList(parameters), numCalls);
-                WriteOutput(output, result);
-            };
+            var result = controller.Call(GetString(function), parameters);
+            WriteOutput(output, result);
 
             return 0;
         }

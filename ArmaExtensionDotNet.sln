@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArmaExtensionDotNet", "ArmaExtensionDotNet.csproj", "{E2F4F30B-59F7-4F8F-8A59-EBA8A76341C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArmaExtensionDotNet", "ArmaExtensionDotNet.csproj", "{E2F4F30B-59F7-4F8F-8A59-EBA8A76341C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
