@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ArmaExtensionDotNet
+﻿namespace ArmaExtensionDotNet
 {
     internal class Controller(Client client, Invoker invoker, ResponseCache responseCache)
     {
@@ -21,7 +15,6 @@ namespace ArmaExtensionDotNet
                     client.Log("runSqfTest - begin");
 
                     invoker.GetPlayerPos();
-                    //client.ExecSqf("getPos player");
 
                     client.Log("runSqfTest - end");
                 });

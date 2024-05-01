@@ -1,6 +1,5 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
-using static ArmaExtensionDotNet.Client;
 
 namespace ArmaExtensionDotNet
 {
