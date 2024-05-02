@@ -29,6 +29,7 @@ namespace ArmaExtensionDotNet
         [UnmanagedCallersOnly(EntryPoint = "RVExtensionVersion")]
         public unsafe static void RVExtensionVersion(char* output, int outputSize)
         {
+            controller.Init();
             WriteOutput(output, "ArmaExtensionDotNet v1.0");
         }
 
@@ -41,8 +42,15 @@ namespace ArmaExtensionDotNet
         [UnmanagedCallersOnly(EntryPoint = "RVExtension")]
         public unsafe static void RVExtension(char* output, int outputSize, char* function)
         {
-            var result = controller.Call(GetString(function), []);
-            WriteOutput(output, result);
+            try
+            {
+                var result = controller.Call(GetString(function), []);
+                WriteOutput(output, result);
+            } 
+            catch (Exception e)
+            {
+                client.Log($"ERROR: {e}");
+            }
         }
 
         /// <summary>
@@ -63,8 +71,16 @@ namespace ArmaExtensionDotNet
                 parameters.Add(GetString(argv[i]));
             }
 
-            var result = controller.Call(GetString(function), parameters);
-            WriteOutput(output, result);
+            try
+            {
+                var result = controller.Call(GetString(function), parameters);
+                WriteOutput(output, result);
+            }
+            catch (Exception e)
+            {
+                client.Log($"ERROR: {e}");
+                return -1;
+            }
 
             return 0;
         }
