@@ -17,7 +17,8 @@ namespace ArmaExtensionDotNet
 
         public String GetPos(string unit)
         {
-            var requestId = client.ExecSqf($"getPos (\"{unit}\" call BIS_fnc_objectFromNetId)");
+            //var requestId = client.ExecSqf($"getPos (\"{unit}\" call BIS_fnc_objectFromNetId)");
+            var requestId = client.ExecSqf($"getPos {ObjectFromNetIdCode(unit)}");
             return WaitForResponse(requestId);
         }
 
@@ -30,13 +31,15 @@ namespace ArmaExtensionDotNet
 
         public String IsKindOf(string unit, string kind)
         {
-            var requestId = client.ExecSqf($"(\"{unit}\" call BIS_fnc_objectFromNetId) isKindOf \"{kind}\"");
+            //var requestId = client.ExecSqf($"(\"{unit}\" call BIS_fnc_objectFromNetId) isKindOf \"{kind}\"");
+            var requestId = client.ExecSqf($"{ObjectFromNetIdCode(unit)} isKindOf \"{kind}\"");
             return WaitForResponse(requestId);
         }
 
         public String Leader(string unit)
         {
-            var requestId = client.ExecSqf($"(leader (\"{unit}\" call BIS_fnc_objectFromNetId)) ");
+            //var requestId = client.ExecSqf($"(leader (\"{unit}\" call BIS_fnc_objectFromNetId)) ");
+            var requestId = client.ExecSqf($"leader {ObjectFromNetIdCode(unit)} ");
             return WaitForResponse(requestId);
         }
 
@@ -59,6 +62,11 @@ namespace ArmaExtensionDotNet
             stopwatch.Stop();
 
             throw new InvalidOperationException($"Timed out waiting for request {requestId}");
+        }
+
+        private static String ObjectFromNetIdCode(string unit)
+        {
+            return $"(\"{unit}\" call BIS_fnc_objectFromNetId)";
         }
     }
 }
