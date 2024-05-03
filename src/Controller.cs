@@ -69,6 +69,7 @@ namespace ArmaExtensionDotNet
             {
                 "runSqfTest" => Task.Run(RunSqfTest),
                 "sendResponse" => Task.Run(() => SendResponse(parameters)),
+                "handleEvent" => Task.Run(() => HandleEvent(parameters)),
                 _ => throw new ArgumentException($"Unknown function {functionName}"),
             };
             tasks.Add(task);
@@ -83,7 +84,10 @@ namespace ArmaExtensionDotNet
             A3Object player = invoker.GetPlayer();
             invoker.GetPos(player);
             invoker.IsKindOf(player, "Man");
-            invoker.Leader(player);
+
+            var leader = invoker.Leader(player);
+            invoker.AddKilledEventHandler(leader);
+            invoker.AddHitEventHandler(leader);
 
             client.Log("runSqfTest - end");
         }
@@ -101,6 +105,17 @@ namespace ArmaExtensionDotNet
 
             client.Log($"Added response: '{result}' for request {id}");
             responseCache.AddResponse(id, result);
+        }
+
+        private void HandleEvent(List<String> parameters)
+        {
+            if (parameters.Count < 1)
+            {
+                throw new ArgumentException("Expected at least 1 parameter");
+            }
+
+            var eventName = parameters[0].Replace("\"", "");
+            client.Log($"Handling event '{eventName}'");
         }
     }
 }

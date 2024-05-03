@@ -1,7 +1,6 @@
-﻿using ArmaExtensionDotNet.Sqf;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
-namespace ArmaExtensionDotNet
+namespace ArmaExtensionDotNet.Sqf
 {
     internal class Invoker(Client client, ResponseCache responseCache)
     {
@@ -10,13 +9,13 @@ namespace ArmaExtensionDotNet
         private readonly Client client = client;
         private readonly ResponseCache responseCache = responseCache;
 
-        public String GetPlayerPos()
+        public string GetPlayerPos()
         {
             var requestId = client.ExecSqf("getPos player");
             return WaitForResponse(requestId);
         }
 
-        public String GetPos(A3Object unit)
+        public string GetPos(A3Object unit)
         {
             var requestId = client.ExecSqf($"getPos {ObjectFromNetIdCode(unit)}");
             return WaitForResponse(requestId);
@@ -28,7 +27,7 @@ namespace ArmaExtensionDotNet
             return Serializer.ReadObject(WaitForResponse(requestId));
         }
 
-        public String IsKindOf(A3Object unit, string kind)
+        public string IsKindOf(A3Object unit, string kind)
         {
             var requestId = client.ExecSqf($"{ObjectFromNetIdCode(unit)} isKindOf \"{kind}\"");
             return WaitForResponse(requestId);
@@ -40,7 +39,31 @@ namespace ArmaExtensionDotNet
             return Serializer.ReadObject(WaitForResponse(requestId));
         }
 
-        private String WaitForResponse(string requestId)
+        public void AddKilledEventHandler(A3Object unit)
+        {
+            var code = @$"
+                {ObjectFromNetIdCode(unit)} addEventHandler [""Hit"", {{
+	                params [""_unit"", ""_source"", ""_damage"", ""_instigator""];
+	                ""{Client.ExtensionName}"" callExtension [""handleEvent"", [""hit"", {Serializer.WriteObject(unit)}, _source, _damage, _instigator]];
+                }}];
+               ";
+            var requestId = client.ExecSqf(code);
+            WaitForResponse(requestId);
+        }
+
+        public void AddHitEventHandler(A3Object unit)
+        {
+            var code = @$"
+                {ObjectFromNetIdCode(unit)} addEventHandler [""Killed"", {{
+	                params [""_unit"", ""_killer"", ""_instigator"", ""_useEffects""];
+	                ""{Client.ExtensionName}"" callExtension [""handleEvent"", [""killed"", {Serializer.WriteObject(unit)}]];
+                }}];
+               ";
+            var requestId = client.ExecSqf(code);
+            WaitForResponse(requestId);
+        }
+
+        private string WaitForResponse(string requestId)
         {
             client.Log($"Waiting for a response to request {requestId}");
 
@@ -61,7 +84,7 @@ namespace ArmaExtensionDotNet
             throw new InvalidOperationException($"Timed out waiting for request {requestId}");
         }
 
-        private static String ObjectFromNetIdCode(A3Object unit)
+        private static string ObjectFromNetIdCode(A3Object unit)
         {
             return $"({Serializer.WriteObject(unit)} call BIS_fnc_objectFromNetId)";
         }

@@ -4,7 +4,7 @@ namespace ArmaExtensionDotNet
 {
     internal class Client
     {
-        private const string ExtensionName = "ArmaExtensionDotNet";
+        public const string ExtensionName = "ArmaExtensionDotNet";
 
         public delegate int ExtensionCallback([MarshalAs(UnmanagedType.LPStr)] string name, [MarshalAs(UnmanagedType.LPStr)] string function, [MarshalAs(UnmanagedType.LPStr)] string data);
         private ExtensionCallback? callback;

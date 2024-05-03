@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
+using ArmaExtensionDotNet.Sqf;
 
 namespace ArmaExtensionDotNet
 {
