@@ -11,9 +11,33 @@ namespace ArmaExtensionDotNet
 
         public String GetPlayerPos()
         {
-            var id = Guid.NewGuid().ToString();
-            client.ExecSqf(id, "getPos player");
-            return WaitForResponse(id);
+            var requestId = client.ExecSqf("getPos player");
+            return WaitForResponse(requestId);
+        }
+
+        public String GetPos(string unit)
+        {
+            var requestId = client.ExecSqf($"getPos (\"{unit}\" call BIS_fnc_objectFromNetId)");
+            return WaitForResponse(requestId);
+        }
+
+        public String GetPlayer()
+        {
+            var requestId = client.ExecSqf("player call BIS_fnc_netId");
+            var player = WaitForResponse(requestId).Replace("\"", "");
+            return player;
+        }
+
+        public String IsKindOf(string unit, string kind)
+        {
+            var requestId = client.ExecSqf($"(\"{unit}\" call BIS_fnc_objectFromNetId) isKindOf \"{kind}\"");
+            return WaitForResponse(requestId);
+        }
+
+        public String Leader(string unit)
+        {
+            var requestId = client.ExecSqf($"(leader (\"{unit}\" call BIS_fnc_objectFromNetId)) ");
+            return WaitForResponse(requestId);
         }
 
         private String WaitForResponse(string requestId)

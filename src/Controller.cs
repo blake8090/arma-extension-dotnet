@@ -77,7 +77,12 @@
         private void RunSqfTest()
         {
             client.Log("runSqfTest - begin");
-            invoker.GetPlayerPos();
+
+            var player = invoker.GetPlayer();
+            invoker.GetPos(player);
+            invoker.IsKindOf(player, "Man");
+            invoker.Leader(player);
+
             client.Log("runSqfTest - end");
         }
 

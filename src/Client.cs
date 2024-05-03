@@ -19,10 +19,13 @@ namespace ArmaExtensionDotNet
             callback?.Invoke(ExtensionName, "writeLog", log);
         }
 
-        public void ExecSqf(string requestId, string code)
+        public string ExecSqf(string code)
         {
-            var payload = String.Format("[\"{0}\",\"{1}\"]", requestId, code);
+            var requestId = Guid.NewGuid().ToString();
+            // var payload = String.Format("[\"{0}\",\"{1}\"]", requestId, code);
+            var payload = String.Format("\"{0}\"|{1}", requestId, code);
             callback?.Invoke(ExtensionName, "execSqf", payload);
+            return requestId;
         }
     }
 }

@@ -3,9 +3,10 @@ writeLog = {
 };
 
 execSqf = {
-    private _args = parseSimpleArray _this;
+    private _args = _this splitString "|";
     private _id = _args select 0;
     private _code = _args select 1;
+    diag_log format ["String <%1> - Request id: <%2> Code: <%3>", _this, _id, _code];
     private _result = call compile _code;
     "ArmaExtensionDotNet" callExtension ["sendResponse", [_id, _result]];
 };
@@ -29,4 +30,4 @@ addMissionEventHandler [
     }
 ];
 
-systemChat ("ArmaExtensionDotNet" callExtension "runSqfTest");
+//systemChat ("ArmaExtensionDotNet" callExtension "runSqfTest");
