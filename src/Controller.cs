@@ -7,62 +7,81 @@
         private readonly ResponseCache responseCache = responseCache;
 
         private readonly List<Task> tasks = [];
+        private Task BackgroundTask() => Task.Factory.StartNew(BackgroundService, TaskCreationOptions.LongRunning);
+        private bool running = false;
 
-        public void Init()
+        public void Start()
         {
-            Task.Run(async () =>
+            if (!running)
             {
-                while (true)
-                {
-                    MonitorTasks();
-                    await Task.Delay(500);
-                }
-            });
+                running = true;
+                BackgroundTask();
+            }
         }
 
-        private void MonitorTasks()
+        private void BackgroundService()
         {
-            for (int i = tasks.Count - 1; i >= 0; i--)
+            client.Log("Controller background service started");
+            while (running)
             {
-                var task = tasks[i];
-                if (task.IsCompleted)
+                Thread.Sleep(50);
+                foreach (var item in tasks)
                 {
-                    if (tasks[i].IsFaulted)
-                    {
-                        foreach (var ex in task.Exception?.InnerExceptions ?? new([]))
-                        {
-                            client.Log($"ERROR: {ex}");
-                        }
-                    }
-                    tasks.RemoveAt(i);
+                    CheckTaskExceptions(item);
                 }
+                tasks.RemoveAll(t => t.IsCompleted);
+            }
+            // TODO: use cancellation token
+            client.Log("Controller background service ended");
+        }
+
+        private void CheckTaskExceptions(Task task)
+        {
+            if (!task.IsFaulted)
+            {
+                return;
+            }
+
+            foreach (var ex in task.Exception.InnerExceptions)
+            {
+                client.Log($"ERROR: {ex}");
             }
         }
 
         public string Call(string functionName, List<String> parameters)
         {
-            var task = functionName switch
+            if (!running)
             {
-                "runSqfTest" => RunSqfTest(),
-                "sendResponse" => SendResponse(parameters),
+                client.Log("ERROR: service not started");
+                return "nope";
+            }
+            else if (functionName.Equals("shutdown"))
+            {
+                client.Log("shutting down");
+                running = false;
+                client.Log("successfully shut down");
+                return "shutdown";
+            }
+
+            Task task = functionName switch
+            {
+                "runSqfTest" => Task.Run(RunSqfTest),
+                "sendResponse" => Task.Run(() => SendResponse(parameters)),
                 _ => throw new ArgumentException($"Unknown function {functionName}"),
             };
             tasks.Add(task);
 
-            return "accepted";
+            return "success";
         }
 
-        private Task RunSqfTest()
+        private void RunSqfTest()
         {
-            return Task.Run(() =>
-            {
-                client.Log("runSqfTest - begin");
-                invoker.GetPlayerPos();
-                client.Log("runSqfTest - end");
-            });
+            client.Log("runSqfTest - begin");
+            invoker.GetPlayerPos();
+            client.Log("runSqfTest - end");
         }
 
-        private Task SendResponse(List<String> parameters)
+        private void SendResponse(List<String> parameters)
         {
             if (parameters.Count != 2)
             {
@@ -73,11 +92,8 @@
             var id = parameters[0].Replace("\"", "");
             var result = parameters[1];
 
-            return Task.Run(() =>
-            {
-                client.Log($"Received response: '{result}' for request {id}");
-                responseCache.AddResponse(id, result);
-            });
+            client.Log($"Added response: '{result}' for request {id}");
+            responseCache.AddResponse(id, result);
         }
     }
 }

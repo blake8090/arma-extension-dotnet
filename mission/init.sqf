@@ -3,14 +3,11 @@ writeLog = {
 };
 
 execSqf = {
-    _this spawn {
-        private _a = parseSimpleArray _this;
-        private _id = _a select 0;
-        private _code = _a select 1;
-        private _result = call compile _code;
-        diag_log format["result: %1", _result];
-        "ArmaExtensionDotNet" callExtension ["sendResponse", [_id, _result]];
-    };
+    private _args = parseSimpleArray _this;
+    private _id = _args select 0;
+    private _code = _args select 1;
+    private _result = call compile _code;
+    "ArmaExtensionDotNet" callExtension ["sendResponse", [_id, _result]];
 };
 
 addMissionEventHandler [
