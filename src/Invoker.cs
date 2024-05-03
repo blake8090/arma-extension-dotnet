@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using ArmaExtensionDotNet.Sqf;
+using System.Diagnostics;
 
 namespace ArmaExtensionDotNet
 {
@@ -15,32 +16,28 @@ namespace ArmaExtensionDotNet
             return WaitForResponse(requestId);
         }
 
-        public String GetPos(string unit)
+        public String GetPos(A3Object unit)
         {
-            //var requestId = client.ExecSqf($"getPos (\"{unit}\" call BIS_fnc_objectFromNetId)");
             var requestId = client.ExecSqf($"getPos {ObjectFromNetIdCode(unit)}");
             return WaitForResponse(requestId);
         }
 
-        public String GetPlayer()
+        public A3Object GetPlayer()
         {
             var requestId = client.ExecSqf("player call BIS_fnc_netId");
-            var player = WaitForResponse(requestId).Replace("\"", "");
-            return player;
+            return Serializer.ReadObject(WaitForResponse(requestId));
         }
 
-        public String IsKindOf(string unit, string kind)
+        public String IsKindOf(A3Object unit, string kind)
         {
-            //var requestId = client.ExecSqf($"(\"{unit}\" call BIS_fnc_objectFromNetId) isKindOf \"{kind}\"");
             var requestId = client.ExecSqf($"{ObjectFromNetIdCode(unit)} isKindOf \"{kind}\"");
             return WaitForResponse(requestId);
         }
 
-        public String Leader(string unit)
+        public A3Object Leader(A3Object unit)
         {
-            //var requestId = client.ExecSqf($"(leader (\"{unit}\" call BIS_fnc_objectFromNetId)) ");
-            var requestId = client.ExecSqf($"leader {ObjectFromNetIdCode(unit)} ");
-            return WaitForResponse(requestId);
+            var requestId = client.ExecSqf($"(leader {ObjectFromNetIdCode(unit)}) call BIS_fnc_netId");
+            return Serializer.ReadObject(WaitForResponse(requestId));
         }
 
         private String WaitForResponse(string requestId)
@@ -64,9 +61,9 @@ namespace ArmaExtensionDotNet
             throw new InvalidOperationException($"Timed out waiting for request {requestId}");
         }
 
-        private static String ObjectFromNetIdCode(string unit)
+        private static String ObjectFromNetIdCode(A3Object unit)
         {
-            return $"(\"{unit}\" call BIS_fnc_objectFromNetId)";
+            return $"({Serializer.WriteObject(unit)} call BIS_fnc_objectFromNetId)";
         }
     }
 }

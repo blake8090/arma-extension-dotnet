@@ -1,4 +1,6 @@
-﻿namespace ArmaExtensionDotNet
+﻿using ArmaExtensionDotNet.Sqf;
+
+namespace ArmaExtensionDotNet
 {
     internal class Controller(Client client, Invoker invoker, ResponseCache responseCache)
     {
@@ -78,7 +80,7 @@
         {
             client.Log("runSqfTest - begin");
 
-            var player = invoker.GetPlayer();
+            A3Object player = invoker.GetPlayer();
             invoker.GetPos(player);
             invoker.IsKindOf(player, "Man");
             invoker.Leader(player);
