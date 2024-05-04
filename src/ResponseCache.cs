@@ -2,7 +2,7 @@
 {
     internal class ResponseCache
     {
-        private readonly object cacheLock = new object();
+        private readonly object cacheLock = new();
         private readonly Dictionary<string, string> cache = [];
 
         public void AddResponse(string requestId, string response)

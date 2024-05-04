@@ -1,102 +1,89 @@
-﻿using ArmaExtensionDotNet.Events;
-using ArmaExtensionDotNet.Sqf;
-
-namespace ArmaExtensionDotNet
+﻿namespace ArmaExtensionDotNet
 {
-    internal class Controller(Client client, Invoker invoker, ResponseCache responseCache)
+    internal class Controller(Client client, ResponseCache responseCache)
     {
         private readonly Client client = client;
-        private readonly Invoker invoker = invoker;
         private readonly ResponseCache responseCache = responseCache;
 
+        private readonly Dictionary<string, Action<List<string>>> commands = [];
         private readonly List<Task> tasks = [];
-        private Task BackgroundTask() => Task.Factory.StartNew(BackgroundService, TaskCreationOptions.LongRunning);
-        private bool running = false;
+        private Task? backgroundTask;
 
-        public event EventHandler<HitEventArgs>? Hit;
-        public event EventHandler<KilledEventArgs>? Killed;
+        private bool running = false;
 
         public void Start()
         {
-            if (!running)
-            {
-                running = true;
-                BackgroundTask();
+            if (running) return;
 
-                Hit += (sender, args) => client.Log($"Unit {args.Unit} was hit");
-                Killed += (sender, args) => client.Log($"Unit {args.Unit} was killed");
-            }
+            running = true;
+            backgroundTask = Task.Factory.StartNew(() =>
+            {
+                client.Log("Controller background service started");
+                MonitorTasks();
+                client.Log("Controller background service ended");
+            }, TaskCreationOptions.LongRunning);
         }
 
-        private void BackgroundService()
+        public void RegisterCommand(string name, Action<List<string>> action)
         {
-            client.Log("Controller background service started");
-            while (running)
+            if (commands.ContainsKey(name))
             {
-                Thread.Sleep(50);
-                foreach (var item in tasks)
-                {
-                    CheckTaskExceptions(item);
-                }
-                tasks.RemoveAll(t => t.IsCompleted);
+                throw new ArgumentException($"Command {name} has already been registered");
             }
-            // TODO: use cancellation token
-            client.Log("Controller background service ended");
+            commands.Add(name, action);
+            client.Log($"DEBUG: Registered command {name}");
         }
 
-        private void CheckTaskExceptions(Task task)
-        {
-            if (!task.IsFaulted)
-            {
-                return;
-            }
-
-            foreach (var ex in task.Exception.InnerExceptions)
-            {
-                client.Log($"ERROR: {ex}");
-            }
-        }
-
-        public string Call(string functionName, List<String> parameters)
+        public Tuple<string, int> SendCommand(string name, List<string> parameters)
         {
             if (!running)
             {
                 client.Log("ERROR: service not started");
-                return "nope";
-            }
-            else if (functionName.Equals("shutdown"))
-            {
-                client.Log("shutting down");
-                running = false;
-                client.Log("successfully shut down");
-                return "shutdown";
+                return new("nope", -1);
             }
 
-            Task task = functionName switch
+            try
             {
-                "runSqfTest" => Task.Run(RunSqfTest),
-                "sendResponse" => Task.Run(() => SendResponse(parameters)),
-                "handleEvent" => Task.Run(() => HandleEvent(parameters)),
-                _ => throw new ArgumentException($"Unknown function {functionName}"),
-            };
-            tasks.Add(task);
-
-            return "success";
+                Task task = name switch
+                {
+                    "sendResponse" => Task.Run(() => SendResponse(parameters)),
+                    "handleEvent" => Task.Run(() => HandleEvent(parameters)),
+                    "shutdown" => Task.Run(Shutdown),
+                    _ => RunCommand(name, parameters)
+                };
+                tasks.Add(task);
+                return new("success", 0);
+            }
+            catch (Exception e)
+            {
+                client.Log($"ERROR: {e}");
+                return new(e.Message, -1);
+            }
         }
 
-        private void RunSqfTest()
+        private Task RunCommand(string name, List<string> parameters)
         {
-            client.Log("runSqfTest - begin");
-
-            A3Object player = invoker.GetPlayer();
-            invoker.GetPos(player);
-            invoker.IsKindOf(player, "Man");
-
-            var leader = invoker.Leader(player);
-            invoker.AddKilledEventHandler(leader);
-            invoker.AddHitEventHandler(leader);
-
-            client.Log("runSqfTest - end");
+            //if (name.Equals("sendResponse"))
+            //{
+            //    return Task.Run(() => SendResponse(parameters));
+            //}
+            //if (name.Equals("handleEvent"))
+            //{
+            //    return Task.Run(() => HandleEvent(parameters));
+            //}
+            //else if (name.Equals("shutdown"))
+            //{
+            //    Shutdown();
+            //    return Task.CompletedTask;
+            //}
+            if (commands.TryGetValue(name, out Action<List<string>>? action))
+            {
+                return Task.Run(() => action(parameters));
+            }
+            else
+            {
+                throw new ArgumentException($"Command {name} does not exist");
+            }
         }
 
         private void SendResponse(List<String> parameters)
@@ -114,7 +101,7 @@ namespace ArmaExtensionDotNet
             responseCache.AddResponse(id, result);
         }
 
-        private void HandleEvent(List<String> parameters)
+        private void HandleEvent(List<string> parameters)
         {
             if (parameters.Count < 1)
             {
@@ -122,20 +109,41 @@ namespace ArmaExtensionDotNet
             }
 
             var eventName = parameters[0].Replace("\"", "");
+            client.Log($"Handling event {eventName}");
+        }
 
-            if (eventName.Equals("hit"))
+        private void Shutdown()
+        {
+            client.Log("shutting down");
+            running = false;
+            backgroundTask?.Wait();
+            client.Log("successfully shut down");
+        }
+
+        private void MonitorTasks()
+        {
+            while (running)
             {
-                var unit = Serializer.ReadObject(parameters[1]);
-                Hit?.Invoke(this, new(unit));
+                Thread.Sleep(50);
+                foreach (var item in tasks)
+                {
+                    CheckTaskExceptions(item);
+                }
+                tasks.RemoveAll(t => t.IsCompleted);
             }
-            else if (eventName.Equals("killed"))
+            // TODO: use cancellation token
+        }
+
+        private void CheckTaskExceptions(Task task)
+        {
+            if (!task.IsFaulted)
             {
-                var unit = Serializer.ReadObject(parameters[1]);
-                Killed?.Invoke(this, new(unit));
+                return;
             }
-            else
+
+            foreach (var ex in task.Exception.InnerExceptions)
             {
-                throw new ArgumentException($"Unknown event {eventName}");
+                client.Log($"ERROR: {ex}");
             }
         }
     }

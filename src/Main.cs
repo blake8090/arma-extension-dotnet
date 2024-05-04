@@ -1,15 +1,11 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
-using ArmaExtensionDotNet.Sqf;
 
 namespace ArmaExtensionDotNet
 {
     public class Main
     {
-        private static readonly Client client = new();
-        private static readonly ResponseCache responseCache = new();
-        private static readonly Invoker invoker = new(client, responseCache);
-        private static readonly Controller controller = new(client, invoker, responseCache);
+        private static readonly MyExtension extension = new();
 
         /// <summary>
         /// Called only once when Arma 3 loads the extension.
@@ -18,7 +14,7 @@ namespace ArmaExtensionDotNet
         [UnmanagedCallersOnly(EntryPoint = "RVExtensionRegisterCallback")]
         public unsafe static void RVExtensionRegisterCallback(IntPtr func)
         {
-            client.Register(func);
+            extension.RegisterCallback(func);
         }
 
         /// <summary>
@@ -30,8 +26,8 @@ namespace ArmaExtensionDotNet
         [UnmanagedCallersOnly(EntryPoint = "RVExtensionVersion")]
         public unsafe static void RVExtensionVersion(char* output, int outputSize)
         {
-            controller.Start();
-            WriteOutput(output, "ArmaExtensionDotNet v1.0");
+            extension.Start();
+            WriteOutput(output, extension.Version);
         }
 
         /// <summary>
@@ -43,15 +39,8 @@ namespace ArmaExtensionDotNet
         [UnmanagedCallersOnly(EntryPoint = "RVExtension")]
         public unsafe static void RVExtension(char* output, int outputSize, char* function)
         {
-            try
-            {
-                var result = controller.Call(GetString(function), []);
-                WriteOutput(output, result);
-            }
-            catch (Exception e)
-            {
-                client.Log($"ERROR: {e}");
-            }
+            var (message, _) = extension.SendCommand(GetString(function), []);
+            WriteOutput(output, message);
         }
 
         /// <summary>
@@ -72,18 +61,10 @@ namespace ArmaExtensionDotNet
                 parameters.Add(GetString(argv[i]));
             }
 
-            try
-            {
-                var result = controller.Call(GetString(function), parameters);
-                WriteOutput(output, result);
-            }
-            catch (Exception e)
-            {
-                client.Log($"ERROR: {e}");
-                return -1;
-            }
+            var (message, returnCode) = extension.SendCommand(GetString(function), parameters);
+            WriteOutput(output, message);
 
-            return 0;
+            return returnCode;
         }
 
         /// <summary>
@@ -96,17 +77,6 @@ namespace ArmaExtensionDotNet
         private unsafe static string GetString(char* pointer, string defaultValue = "")
         {
             return Marshal.PtrToStringAnsi((IntPtr)pointer) ?? defaultValue;
-        }
-
-        /// <summary>
-        /// Serializes a list of strings into a string representing a valid Arma 3 array.
-        /// </summary>
-        /// <param name="list">The list of strings to serialize</param>
-        /// <returns>A string representing an Arma 3 array</returns>
-        private static string SerializeList(List<String> list)
-        {
-            var content = string.Join(",", [.. list]);
-            return string.Format("[{0}]", content);
         }
 
         /// <summary>

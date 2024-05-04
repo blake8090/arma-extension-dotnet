@@ -2,12 +2,13 @@
 
 namespace ArmaExtensionDotNet.Sqf
 {
-    internal class Invoker(Client client, ResponseCache responseCache)
+    internal class Invoker(Client client, ResponseCache responseCache, string extensionName)
     {
         private const int TimeoutSeconds = 2;
 
         private readonly Client client = client;
         private readonly ResponseCache responseCache = responseCache;
+        private readonly string extensionName = extensionName;
 
         public string GetPlayerPos()
         {
@@ -44,7 +45,7 @@ namespace ArmaExtensionDotNet.Sqf
             var code = @$"
                 {ObjectFromNetIdCode(unit)} addEventHandler [""Hit"", {{
 	                params [""_unit"", ""_source"", ""_damage"", ""_instigator""];
-	                ""{Client.ExtensionName}"" callExtension [""handleEvent"", [""hit"", {Serializer.WriteObject(unit)}, _source, _damage, _instigator]];
+	                ""{extensionName}"" callExtension [""handleEvent"", [""hit"", {Serializer.WriteObject(unit)}, _source, _damage, _instigator]];
                 }}];
                ";
             var requestId = client.ExecSqf(code);
@@ -56,7 +57,7 @@ namespace ArmaExtensionDotNet.Sqf
             var code = @$"
                 {ObjectFromNetIdCode(unit)} addEventHandler [""Killed"", {{
 	                params [""_unit"", ""_killer"", ""_instigator"", ""_useEffects""];
-	                ""{Client.ExtensionName}"" callExtension [""handleEvent"", [""killed"", {Serializer.WriteObject(unit)}]];
+	                ""{extensionName}"" callExtension [""handleEvent"", [""killed"", {Serializer.WriteObject(unit)}]];
                 }}];
                ";
             var requestId = client.ExecSqf(code);
