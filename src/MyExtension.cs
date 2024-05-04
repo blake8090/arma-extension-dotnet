@@ -1,4 +1,5 @@
-﻿using ArmaExtensionDotNet.Sqf;
+﻿using ArmaExtensionDotNet.Core;
+using ArmaExtensionDotNet.Sqf;
 
 namespace ArmaExtensionDotNet
 {

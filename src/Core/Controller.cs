@@ -1,7 +1,7 @@
 ﻿using ArmaExtensionDotNet.Events;
 using ArmaExtensionDotNet.Sqf;
 
-namespace ArmaExtensionDotNet
+namespace ArmaExtensionDotNet.Core
 {
     internal class Controller(Client client, ResponseCache responseCache)
     {

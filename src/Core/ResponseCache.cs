@@ -1,4 +1,4 @@
-﻿namespace ArmaExtensionDotNet
+﻿namespace ArmaExtensionDotNet.Core
 {
     internal class ResponseCache
     {

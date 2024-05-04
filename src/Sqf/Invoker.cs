@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using ArmaExtensionDotNet.Core;
+using System.Diagnostics;
 
 namespace ArmaExtensionDotNet.Sqf
 {

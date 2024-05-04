@@ -1,6 +1,6 @@
 ﻿using ArmaExtensionDotNet.Sqf;
 
-namespace ArmaExtensionDotNet
+namespace ArmaExtensionDotNet.Core
 {
     internal abstract class BaseExtension
     {

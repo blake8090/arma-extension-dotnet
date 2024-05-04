@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace ArmaExtensionDotNet
+namespace ArmaExtensionDotNet.Core
 {
     internal class Client(string extensionName)
     {
