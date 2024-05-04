@@ -39,7 +39,7 @@ namespace ArmaExtensionDotNet.Sqf
             return Serializer.ReadObject(WaitForResponse(requestId));
         }
 
-        public void AddKilledEventHandler(A3Object unit)
+        public void AddHitEventHandler(A3Object unit)
         {
             var code = @$"
                 {ObjectFromNetIdCode(unit)} addEventHandler [""Hit"", {{
@@ -51,7 +51,7 @@ namespace ArmaExtensionDotNet.Sqf
             WaitForResponse(requestId);
         }
 
-        public void AddHitEventHandler(A3Object unit)
+        public void AddKilledEventHandler(A3Object unit)
         {
             var code = @$"
                 {ObjectFromNetIdCode(unit)} addEventHandler [""Killed"", {{

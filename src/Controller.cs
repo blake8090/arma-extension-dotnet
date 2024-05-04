@@ -1,4 +1,5 @@
-﻿using ArmaExtensionDotNet.Sqf;
+﻿using ArmaExtensionDotNet.Events;
+using ArmaExtensionDotNet.Sqf;
 
 namespace ArmaExtensionDotNet
 {
@@ -12,12 +13,18 @@ namespace ArmaExtensionDotNet
         private Task BackgroundTask() => Task.Factory.StartNew(BackgroundService, TaskCreationOptions.LongRunning);
         private bool running = false;
 
+        public event EventHandler<HitEventArgs>? Hit;
+        public event EventHandler<KilledEventArgs>? Killed;
+
         public void Start()
         {
             if (!running)
             {
                 running = true;
                 BackgroundTask();
+
+                Hit += (sender, args) => client.Log($"Unit {args.Unit} was hit");
+                Killed += (sender, args) => client.Log($"Unit {args.Unit} was killed");
             }
         }
 
@@ -115,7 +122,21 @@ namespace ArmaExtensionDotNet
             }
 
             var eventName = parameters[0].Replace("\"", "");
-            client.Log($"Handling event '{eventName}'");
+
+            if (eventName.Equals("hit"))
+            {
+                var unit = Serializer.ReadObject(parameters[1]);
+                Hit?.Invoke(this, new(unit));
+            }
+            else if (eventName.Equals("killed"))
+            {
+                var unit = Serializer.ReadObject(parameters[1]);
+                Killed?.Invoke(this, new(unit));
+            }
+            else
+            {
+                throw new ArgumentException($"Unknown event {eventName}");
+            }
         }
     }
 }

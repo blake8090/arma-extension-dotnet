@@ -6,8 +6,5 @@ using System.Threading.Tasks;
 
 namespace ArmaExtensionDotNet.Sqf
 {
-    internal class A3Object(string id) : A3Type
-    {
-        public string Id { get; set; } = id;
-    }
+    internal record struct A3Object(string Id);
 }
