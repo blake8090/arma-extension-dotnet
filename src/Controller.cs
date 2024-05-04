@@ -63,19 +63,6 @@
 
         private Task RunCommand(string name, List<string> parameters)
         {
-            //if (name.Equals("sendResponse"))
-            //{
-            //    return Task.Run(() => SendResponse(parameters));
-            //}
-            //if (name.Equals("handleEvent"))
-            //{
-            //    return Task.Run(() => HandleEvent(parameters));
-            //}
-            //else if (name.Equals("shutdown"))
-            //{
-            //    Shutdown();
-            //    return Task.CompletedTask;
-            //}
             if (commands.TryGetValue(name, out Action<List<string>>? action))
             {
                 return Task.Run(() => action(parameters));
