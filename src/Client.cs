@@ -14,9 +14,24 @@ namespace ArmaExtensionDotNet
             callback = Marshal.GetDelegateForFunctionPointer<ExtensionCallback>(functionPointer);
         }
 
-        public void Log(string log)
+        public void LogInfo(string log)
         {
-            callback?.Invoke(extensionName, "writeLog", log);
+            callback?.Invoke(extensionName, "writeLog", $"[{extensionName}] INFO: {log}");
+        }
+
+        public void LogDebug(string log)
+        {
+            callback?.Invoke(extensionName, "writeLog", $"[{extensionName}] DEBUG: {log}");
+        }
+
+        public void LogError(string log)
+        {
+            callback?.Invoke(extensionName, "writeLog", $"[{extensionName}] ERROR: {log}");
+        }
+
+        public void LogTrace(string log)
+        {
+            callback?.Invoke(extensionName, "writeLog", $"[{extensionName}] TRACE: {log}");
         }
 
         public string ExecSqf(string code)

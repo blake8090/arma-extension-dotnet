@@ -1,5 +1,5 @@
 writeLog = {
-    diag_log format ["[ArmaExtensionDotNet] LOG: %1", _this];
+    diag_log format ["%1", _this];
 };
 
 execSqf = {

@@ -19,15 +19,13 @@ namespace ArmaExtensionDotNet
 
         public void Start()
         {
-            if (running) return;
+            if (running)
+            {
+                client.LogInfo("Controller already running");
+            }
 
             running = true;
-            backgroundTask = Task.Factory.StartNew(() =>
-            {
-                client.Log("Controller background service started");
-                MonitorTasks();
-                client.Log("Controller background service ended");
-            }, TaskCreationOptions.LongRunning);
+            backgroundTask = Task.Factory.StartNew(MonitorTasks, TaskCreationOptions.LongRunning);
         }
 
         public void RegisterCommand(string name, Action<List<string>> action)
@@ -37,15 +35,15 @@ namespace ArmaExtensionDotNet
                 throw new ArgumentException($"Command {name} has already been registered");
             }
             commands.Add(name, action);
-            client.Log($"DEBUG: Registered command {name}");
+            client.LogDebug($"Controller - Registered command {name}");
         }
 
         public Tuple<string, int> SendCommand(string name, List<string> parameters)
         {
             if (!running)
             {
-                client.Log("ERROR: service not started");
-                return new("nope", -1);
+                client.LogError("Controller not started");
+                return new("Controller not started", -1);
             }
 
             try
@@ -62,7 +60,7 @@ namespace ArmaExtensionDotNet
             }
             catch (Exception e)
             {
-                client.Log($"ERROR: {e}");
+                client.LogError(e.ToString());
                 return new(e.Message, -1);
             }
         }
@@ -83,14 +81,14 @@ namespace ArmaExtensionDotNet
         {
             if (parameters.Count != 2)
             {
-                throw new ArgumentException("SendResponse: Expected 2 parameters");
+                throw new ArgumentException("Expected 2 parameters");
             }
 
             // deserialize from Arma 3 string which is always wrapped in double quotes
             var id = parameters[0].Replace("\"", "");
             var result = parameters[1];
 
-            client.Log($"Added response: '{result}' for request {id}");
+            client.LogDebug($"Added response: '{result}' for request {id}");
             responseCache.AddResponse(id, result);
         }
 
@@ -101,7 +99,7 @@ namespace ArmaExtensionDotNet
                 throw new ArgumentException("Expected at least 1 parameter");
             }
 
-            var eventName = parameters[0].Replace("\"", "");
+            var eventName = Serializer.ReadString(parameters[0]);
             return eventName switch
             {
                 "hit" => Task.Run(() =>
@@ -122,14 +120,15 @@ namespace ArmaExtensionDotNet
 
         private void Shutdown()
         {
-            client.Log("shutting down");
+            client.LogInfo("Controller - shutting down");
             running = false;
             backgroundTask?.Wait();
-            client.Log("successfully shut down");
+            client.LogInfo("Controller - successfully shut down");
         }
 
         private void MonitorTasks()
         {
+            client.LogInfo("Controller - background service started");
             while (running)
             {
                 Thread.Sleep(50);
@@ -139,6 +138,7 @@ namespace ArmaExtensionDotNet
                 }
                 tasks.RemoveAll(t => t.IsCompleted);
             }
+            client.LogInfo("Controller - background service ended");
             // TODO: use cancellation token
         }
 
@@ -151,7 +151,7 @@ namespace ArmaExtensionDotNet
 
             foreach (var ex in task.Exception.InnerExceptions)
             {
-                client.Log($"ERROR: {ex}");
+                client.LogError(ex.ToString());
             }
         }
     }

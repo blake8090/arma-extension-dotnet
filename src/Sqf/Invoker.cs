@@ -60,7 +60,7 @@ namespace ArmaExtensionDotNet.Sqf
 
         private string WaitForResponse(string requestId)
         {
-            client.Log($"Waiting for a response to request {requestId}");
+            client.LogTrace($"Waiting for a response to request {requestId}");
 
             Stopwatch stopwatch = Stopwatch.StartNew();
             while (stopwatch.Elapsed.TotalSeconds < TimeoutSeconds)
@@ -70,7 +70,7 @@ namespace ArmaExtensionDotNet.Sqf
                     var response = responseCache.ConsumeResponse(requestId);
                     stopwatch.Stop();
                     var elapsedMs = stopwatch.ElapsedMilliseconds;
-                    client.Log($"Received reponse '{response}' for request {requestId} in {elapsedMs} ms");
+                    client.LogTrace($"Received reponse '{response}' for request {requestId} in {elapsedMs} ms");
                     return response;
                 }
             }

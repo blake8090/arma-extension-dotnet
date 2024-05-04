@@ -9,23 +9,23 @@ namespace ArmaExtensionDotNet
 
         protected override void OnStart()
         {
-            client.Log("MyExtension - start");
+            client.LogInfo("MyExtension - start");
             controller.RegisterCommand("runSqfTest", RunSqfTest);
 
             controller.Hit += (sender, e) =>
             {
-                client.Log($"Unit {e.Unit} was hit");
+                client.LogDebug($"Unit {e.Unit} was hit");
             };
 
             controller.Killed += (sender, e) =>
             {
-                client.Log($"Unit {e.Unit} was killed");
+                client.LogDebug($"Unit {e.Unit} was killed");
             };
         }
 
         private void RunSqfTest(List<string> args)
         {
-            client.Log("runSqfTest - begin");
+            client.LogDebug("runSqfTest - begin");
 
             A3Object player = invoker.GetPlayer();
             invoker.GetPos(player);
@@ -35,7 +35,7 @@ namespace ArmaExtensionDotNet
             invoker.AddKilledEventHandler(leader);
             invoker.AddHitEventHandler(leader);
 
-            client.Log("runSqfTest - end");
+            client.LogDebug("runSqfTest - end");
         }
     }
 }
