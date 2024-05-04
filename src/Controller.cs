@@ -1,14 +1,20 @@
-﻿namespace ArmaExtensionDotNet
+﻿using ArmaExtensionDotNet.Events;
+using ArmaExtensionDotNet.Sqf;
+
+namespace ArmaExtensionDotNet
 {
     internal class Controller(Client client, ResponseCache responseCache)
     {
+        public event EventHandler<HitEventArgs>? Hit;
+        public event EventHandler<KilledEventArgs>? Killed;
+
         private readonly Client client = client;
         private readonly ResponseCache responseCache = responseCache;
 
         private readonly Dictionary<string, Action<List<string>>> commands = [];
+
         private readonly List<Task> tasks = [];
         private Task? backgroundTask;
-
         private bool running = false;
 
         public void Start()
@@ -47,7 +53,7 @@
                 Task task = name switch
                 {
                     "sendResponse" => Task.Run(() => SendResponse(parameters)),
-                    "handleEvent" => Task.Run(() => HandleEvent(parameters)),
+                    "handleEvent" => HandleEvent(parameters),
                     "shutdown" => Task.Run(Shutdown),
                     _ => RunCommand(name, parameters)
                 };
@@ -88,7 +94,7 @@
             responseCache.AddResponse(id, result);
         }
 
-        private void HandleEvent(List<string> parameters)
+        private Task HandleEvent(List<string> parameters)
         {
             if (parameters.Count < 1)
             {
@@ -96,7 +102,22 @@
             }
 
             var eventName = parameters[0].Replace("\"", "");
-            client.Log($"Handling event {eventName}");
+            return eventName switch
+            {
+                "hit" => Task.Run(() =>
+                {
+                    var unit = Serializer.ReadObject(parameters[1]);
+                    Hit?.Invoke(this, new(unit));
+                }),
+
+                "killed" => Task.Run(() =>
+                {
+                    var unit = Serializer.ReadObject(parameters[1]);
+                    Killed?.Invoke(this, new(unit));
+                }),
+
+                _ => throw new ArgumentException($"Unknown event '{eventName}'")
+            };
         }
 
         private void Shutdown()

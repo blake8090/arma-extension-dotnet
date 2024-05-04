@@ -11,6 +11,16 @@ namespace ArmaExtensionDotNet
         {
             client.Log("MyExtension - start");
             controller.RegisterCommand("runSqfTest", RunSqfTest);
+
+            controller.Hit += (sender, e) =>
+            {
+                client.Log($"Unit {e.Unit} was hit");
+            };
+
+            controller.Killed += (sender, e) =>
+            {
+                client.Log($"Unit {e.Unit} was killed");
+            };
         }
 
         private void RunSqfTest(List<string> args)
