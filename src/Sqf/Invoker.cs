@@ -10,12 +10,6 @@ namespace ArmaExtensionDotNet.Sqf
         private readonly ResponseCache responseCache = responseCache;
         private readonly string extensionName = extensionName;
 
-        public string GetPlayerPos()
-        {
-            var requestId = client.ExecSqf("getPos player");
-            return WaitForResponse(requestId);
-        }
-
         public string GetPos(A3Object unit)
         {
             var requestId = client.ExecSqf($"getPos {ObjectFromNetIdCode(unit)}");
