@@ -1,6 +1,6 @@
-﻿using ArmaExtensionDotNet.Sqf;
+﻿using ArmaExtensionDotNet.Core.Sqf;
 
-namespace ArmaExtensionDotNet.Events
+namespace ArmaExtensionDotNet.Core.Events
 {
     internal class KilledEventArgs(A3Object unit) : EventArgs
     {

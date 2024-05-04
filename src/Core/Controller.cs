@@ -1,5 +1,5 @@
-﻿using ArmaExtensionDotNet.Events;
-using ArmaExtensionDotNet.Sqf;
+﻿using ArmaExtensionDotNet.Core.Events;
+using ArmaExtensionDotNet.Core.Sqf;
 
 namespace ArmaExtensionDotNet.Core
 {

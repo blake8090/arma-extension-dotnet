@@ -1,7 +1,6 @@
-﻿using ArmaExtensionDotNet.Core;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
-namespace ArmaExtensionDotNet.Sqf
+namespace ArmaExtensionDotNet.Core.Sqf
 {
     internal class Invoker(Client client, ResponseCache responseCache, string extensionName)
     {

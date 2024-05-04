@@ -1,4 +1,4 @@
-﻿namespace ArmaExtensionDotNet.Sqf
+﻿namespace ArmaExtensionDotNet.Core.Sqf
 {
     internal class Serializer
     {
